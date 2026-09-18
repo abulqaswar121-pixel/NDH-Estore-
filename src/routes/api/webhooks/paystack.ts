@@ -1,0 +1,4 @@
+import {createFileRoute} from '@tanstack/react-router'
+import {processPaymentWebhook,validPaystackSignature} from '@/lib/paymentWebhooks'
+import {processPaystackTransferEvent} from '@/lib/payouts'
+export const Route=createFileRoute('/api/webhooks/paystack')({server:{handlers:{POST:async({request})=>{const raw=await request.text();if(!validPaystackSignature(raw,request.headers.get('x-paystack-signature')))return new Response('Invalid signature',{status:401});let payload:Record<string,unknown>;try{payload=JSON.parse(raw) as Record<string,unknown>}catch{return new Response('Invalid payload',{status:400})}try{const eventType=String(payload.event??'');if(eventType.startsWith('transfer.'))await processPaystackTransferEvent(eventType,(payload.data??{}) as Record<string,unknown>);else await processPaymentWebhook('paystack',payload);return new Response('OK')}catch{return new Response('Webhook processing failed',{status:500})}}}}})

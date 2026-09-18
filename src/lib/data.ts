@@ -1,0 +1,18 @@
+import {createServerFn} from '@tanstack/react-start'
+import {queryOptions} from '@tanstack/react-query'
+import type {Product,ProductVariant,Vendor} from '@/types/schema'
+export const demoVendor:Vendor={id:'v_001',email:'hello@amari.ng',business_name:'Amari Atelier',shop_slug:'amari-atelier',whatsapp_number:'2349029932794',business_category:'wigs_fashion',subscription_tier:'pro',billing_cycle:'yearly',subscription_status:'active',trial_end_date:'2026-10-01',current_period_end:'2027-09-17',platform_fee_percentage:1.5,meta_pixel_id:null,meta_capi_token:null,design_settings:{selected_dna:'minimal_luxe',nav_style:'floating_island',typography:'Minimal Luxe',primary_accent:'#173f32',background_accent:'#f4efe6',announcement_text:'Complimentary Lagos delivery on orders above ₦150,000',enabled_pages:['Shop','Collections','Our story'],homepage_order:['hero','categories','featured','products'],show_newsletter:true,logo_shape:'circle',logo_text:'AA',logo_url:null}}
+export const products:Product[]=[
+{id:'p1',vendor_id:'v_001',name:'Raw Vietnamese Wave',description:'Silky double-drawn raw hair, finished by hand.',base_price:185000,image_url:'https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=900&q=80',category:'Signature wigs',is_featured:true,stock_count:12,product_type:'physical',weight_kg:.6},
+{id:'p2',vendor_id:'v_001',name:'The Nia Bob',description:'Precision-cut everyday bob with invisible lace.',base_price:98000,image_url:'https://images.unsplash.com/photo-1566206091558-7f218b696731?auto=format&fit=crop&w=900&q=80',category:'Bobs',is_featured:true,stock_count:7,product_type:'physical',weight_kg:.4},
+{id:'p3',vendor_id:'v_001',name:'Luxe Body Wave',description:'Full-bodied movement with natural density.',base_price:145000,image_url:'https://images.unsplash.com/photo-1596704017254-97586a2e911d?auto=format&fit=crop&w=900&q=80',category:'Bundles',is_featured:false,stock_count:21,product_type:'physical',weight_kg:.5}]
+export const variants:ProductVariant[]=[{id:'x1',product_id:'p1',variant_name:'Length',variant_value:'20 inches',price_modifier:0,stock_count:4},{id:'x2',product_id:'p1',variant_name:'Length',variant_value:'24 inches',price_modifier:35000,stock_count:5},{id:'x3',product_id:'p1',variant_name:'Length',variant_value:'30 inches',price_modifier:85000,stock_count:3}]
+export const getVendor=createServerFn({method:'GET'}).validator((slug:string)=>slug).handler(async({data})=>({...demoVendor,shop_slug:data}))
+export const getProducts=createServerFn({method:'GET'}).validator((vendorId:string)=>vendorId).handler(async()=>products)
+export const checkSlug=createServerFn({method:'GET'}).validator((slug:string)=>slug).handler(async({data})=>({available:!['admin','store','amari-atelier'].includes(data),slug:data}))
+export const initializePayment=createServerFn({method:'POST'}).validator((d:{provider:'paystack'|'flutterwave';amount:number;email:string})=>d).handler(async({data})=>({authorizationUrl:`/payments/connect?provider=${data.provider}`,reference:`NDH-${Date.now()}`}))
+export const sendTransactionalEmail=createServerFn({method:'POST'}).validator((d:{template:'order_confirmation'|'vendor_notification';to:string;orderId:string})=>d).handler(async({data})=>({queued:true,messageId:`mail-${data.orderId}-${data.template}`}))
+export function hasRole(userId:string,role:'admin'|'vendor'|'customer',rows:{user_id:string;role:string}[]){return rows.some(r=>r.user_id===userId&&r.role===role)}
+
+export const vendorQuery=(slug:string)=>queryOptions({queryKey:['vendor',slug],queryFn:()=>getVendor({data:slug})})
+export const productsQuery=(vendorId:string)=>queryOptions({queryKey:['products',vendorId],queryFn:()=>getProducts({data:vendorId})})

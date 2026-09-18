@@ -1,0 +1,3 @@
+import {createFileRoute} from '@tanstack/react-router'
+import {processPaymentWebhook,validFlutterwaveSignature} from '@/lib/paymentWebhooks'
+export const Route=createFileRoute('/api/webhooks/flutterwave')({server:{handlers:{POST:async({request})=>{const signature=request.headers.get('verif-hash')??request.headers.get('flutterwave-signature');if(!validFlutterwaveSignature(signature))return new Response('Invalid signature',{status:401});let payload:Record<string,unknown>;try{payload=await request.json() as Record<string,unknown>}catch{return new Response('Invalid payload',{status:400})}try{await processPaymentWebhook('flutterwave',payload);return new Response('OK')}catch{return new Response('Webhook processing failed',{status:500})}}}}})
