@@ -1,0 +1,1 @@
+import {createFileRoute} from '@tanstack/react-router';import {AuthPanel} from '@/components/auth/AuthPanel';import {SiteHeader,SiteFooter} from '@/components/marketing/SiteShell';export const Route=createFileRoute('/signup')({component:()=> <main><SiteHeader/><AuthPanel initialMode="signup"/><SiteFooter/></main>})
